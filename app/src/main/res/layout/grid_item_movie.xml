@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:minWidth="@android:dimen/thumbnail_width"
+    android:minHeight="@android:dimen/thumbnail_height"
+    android:id="@+id/grid_item_movie_textview"
+    android:gravity="center"
+    />
