@@ -1,0 +1,41 @@
+package com.dlv.popularmovies;
+
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.squareup.picasso.Picasso;
+
+import java.util.List;
+
+/**
+ * Created by dlv on 14/10/2015.
+ */
+public class MoviesArrayAdapter extends ArrayAdapter<Movie> {
+
+    public MoviesArrayAdapter(Context context, List<Movie> movies) {
+        super(context, 0, movies);
+    }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        Movie movie = getItem(position);
+
+        if (convertView == null) {
+            convertView = LayoutInflater.from(getContext()).
+                    inflate(R.layout.grid_item_movie, parent, false);
+        }
+
+        ImageView movieImage = (ImageView) convertView.findViewById(R.id.movie_image);
+        Picasso.with(getContext()).load(movie.getThumbnailURL()).into(movieImage);
+
+        TextView movieTitle = (TextView) convertView.findViewById(R.id.movie_text);
+        movieTitle.setText(movie.getName());
+
+        return convertView;
+    }
+}

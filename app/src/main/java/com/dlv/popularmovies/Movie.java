@@ -16,7 +16,16 @@ public class Movie {
         this.mThumbnailFileName = thumbnailFileName;
     }
 
+    public String getName() {
+        return mName;
+    }
+
     public String getThumbnailURL() {
         return THUMBNAIL_URL_BASE + mThumbnailFileName;
+    }
+
+    @Override
+    public String toString() {
+        return mName;
     }
 }
