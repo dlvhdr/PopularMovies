@@ -1,6 +1,7 @@
 package com.dlv.popularmovies;
 
 import android.app.Fragment;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -11,7 +12,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
 import android.widget.GridView;
 
 import org.json.JSONArray;
@@ -25,7 +26,10 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 /**
  * Created by dlv on 14/10/2015.
@@ -51,6 +55,15 @@ public class MoviesGridFragment extends Fragment {
 
         mArrayAdapter = new MoviesArrayAdapter(getActivity(), new ArrayList<Movie>());
         moviesGridView.setAdapter(mArrayAdapter);
+        moviesGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Movie movie = mArrayAdapter.getItem(position);
+                Intent intent = new Intent(getActivity(), DetailActivity.class);
+                intent.putExtra("movie", movie);
+                startActivity(intent);
+            }
+        });
 
         return rootView;
     }
@@ -74,6 +87,12 @@ public class MoviesGridFragment extends Fragment {
     private void updateMovies() {
         FetchMoviesTask fetchMoviesTask = new FetchMoviesTask();
         fetchMoviesTask.execute();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        updateMovies();
     }
 
     public class FetchMoviesTask extends AsyncTask<Void, Void, Movie[]> {
@@ -154,6 +173,7 @@ public class MoviesGridFragment extends Fragment {
         private Movie[] buildMoviesFromJson(String moviesJsonStr) throws JSONException {
             JSONObject moviesJson = new JSONObject(moviesJsonStr);
             JSONArray moviesArray = moviesJson.getJSONArray("results");
+            SimpleDateFormat dateFormat = new SimpleDateFormat(Movie.DATE_FORMAT);
 
             if (moviesArray == null || moviesArray.length() <= 0) return null;
             Movie[] results = new Movie[moviesArray.length()];
@@ -161,13 +181,20 @@ public class MoviesGridFragment extends Fragment {
             for (int i = 0; i < moviesArray.length(); i++) {
                 JSONObject movieJson = moviesArray.getJSONObject(i);
 
-                Log.i(LOG_TAG, movieJson.toString());
+                Date releaseDate = null;
+                try {
+                    releaseDate = dateFormat.parse(movieJson.getString("release_date"));
+                } catch (ParseException e) {
+                    Log.e(LOG_TAG, "Error parsing release date", e);
+                    return null;
+                }
 
-                long id = movieJson.getLong("id");
-                String name = movieJson.getString("original_title");
-                String thumbnailURL = movieJson.getString("poster_path");
-
-                Movie movie = new Movie(id, name, thumbnailURL);
+                Movie movie = new Movie(movieJson.getLong("id"));
+                movie.setName(movieJson.getString("original_title"));
+                movie.setOverview(movieJson.getString("overview"));
+                movie.setThumbnailFileName(movieJson.getString("poster_path"));
+                movie.setUserRating(movieJson.getDouble("vote_average"));
+                movie.setReleaseDate(releaseDate);
 
                 results[i] = movie;
             }
