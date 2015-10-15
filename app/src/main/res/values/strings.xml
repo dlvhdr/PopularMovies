@@ -3,4 +3,6 @@
     <string name="action_settings">Settings</string>
 
     <string name="action_refresh">Refresh</string>
+    <string name="activity_details">Details</string>
+    <string name="chappie">C:\\Users\\dlv\\Downloads\\chappie.jpg</string>
 </resources>
