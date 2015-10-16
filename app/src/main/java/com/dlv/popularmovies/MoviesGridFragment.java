@@ -45,6 +45,13 @@ public class MoviesGridFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (savedInstanceState != null && savedInstanceState.containsKey(MOVIES_LIST_KEY)) {
+            mMovies = savedInstanceState.getParcelableArrayList(MOVIES_LIST_KEY);
+        } else {
+            mMovies = new ArrayList<Movie>();
+        }
+
         setHasOptionsMenu(true);
     }
 
@@ -53,12 +60,6 @@ public class MoviesGridFragment extends Fragment {
 
         View rootView = inflater.inflate(R.layout.fragment_movies_grid, container, false);
         GridView moviesGridView = (GridView) rootView.findViewById(R.id.gridview_movies);
-
-        if (savedInstanceState != null && savedInstanceState.containsKey(MOVIES_LIST_KEY)) {
-            mMovies = savedInstanceState.getParcelableArrayList(MOVIES_LIST_KEY);
-        } else {
-            mMovies = new ArrayList<Movie>();
-        }
 
         mArrayAdapter = new MoviesArrayAdapter(getActivity(), mMovies);
         moviesGridView.setAdapter(mArrayAdapter);
@@ -105,6 +106,8 @@ public class MoviesGridFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
+
+        //Only update if we have no movies from the savedInstanceBundle
         if (mMovies.size() == 0) updateMovies();
     }
 
