@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -35,7 +34,10 @@ import java.util.Date;
  * Created by dlv on 14/10/2015.
  */
 public class MoviesGridFragment extends Fragment {
-    MoviesArrayAdapter mArrayAdapter;
+    private final static String MOVIES_LIST_KEY = "movies";
+
+    private MoviesArrayAdapter mArrayAdapter;
+    private ArrayList<Movie> mMovies;
 
     public MoviesGridFragment() {
     }
@@ -50,10 +52,15 @@ public class MoviesGridFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         View rootView = inflater.inflate(R.layout.fragment_movies_grid, container, false);
-
         GridView moviesGridView = (GridView) rootView.findViewById(R.id.gridview_movies);
 
-        mArrayAdapter = new MoviesArrayAdapter(getActivity(), new ArrayList<Movie>());
+        if (savedInstanceState != null && savedInstanceState.containsKey(MOVIES_LIST_KEY)) {
+            mMovies = savedInstanceState.getParcelableArrayList(MOVIES_LIST_KEY);
+        } else {
+            mMovies = new ArrayList<Movie>();
+        }
+
+        mArrayAdapter = new MoviesArrayAdapter(getActivity(), mMovies);
         moviesGridView.setAdapter(mArrayAdapter);
         moviesGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -66,6 +73,12 @@ public class MoviesGridFragment extends Fragment {
         });
 
         return rootView;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putParcelableArrayList(MOVIES_LIST_KEY, mMovies);
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -92,7 +105,7 @@ public class MoviesGridFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        updateMovies();
+        if (mMovies.size() == 0) updateMovies();
     }
 
     public class FetchMoviesTask extends AsyncTask<Void, Void, Movie[]> {
@@ -143,9 +156,6 @@ public class MoviesGridFragment extends Fragment {
                 }
 
                 moviesJsonStr = buffer.toString();
-            } catch (MalformedURLException e) {
-                Log.e(LOG_TAG, "Error ", e);
-                return null;
             } catch (IOException e) {
                 Log.e(LOG_TAG, "Error paring the JSON", e);
                 return null;
@@ -161,12 +171,12 @@ public class MoviesGridFragment extends Fragment {
         }
 
         @Override
-        protected void onPostExecute(Movie[] moviesStrings) {
-            if (moviesStrings == null) return;
+        protected void onPostExecute(Movie[] movies) {
+            if (movies == null) return;
 
             mArrayAdapter.clear();
-            for (Movie movieString : moviesStrings) {
-                mArrayAdapter.add(movieString);
+            for (Movie movie : movies) {
+                mArrayAdapter.add(movie);
             }
         }
 
