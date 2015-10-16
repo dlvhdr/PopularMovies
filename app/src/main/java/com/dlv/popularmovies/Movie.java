@@ -36,6 +36,10 @@ public class Movie implements Parcelable {
         return THUMBNAIL_URL_BASE + mThumbnailFileName;
     }
 
+    public String getThumbnailFileName() {
+        return this.mThumbnailFileName;
+    }
+
     public void setThumbnailFileName(String thumbnailFileName) {
         this.mThumbnailFileName = thumbnailFileName;
     }

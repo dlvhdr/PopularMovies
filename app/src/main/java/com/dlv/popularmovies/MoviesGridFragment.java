@@ -1,7 +1,9 @@
 package com.dlv.popularmovies;
 
 import android.app.Fragment;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -35,6 +37,9 @@ import java.util.Date;
  */
 public class MoviesGridFragment extends Fragment {
     private final static String MOVIES_LIST_KEY = "movies";
+    private static final String POPULARITY_DESC = "popularity.desc";
+    private static final String VOTE_AVERAGE_DESC = "vote_average.desc";
+    private static final String SORT_BY = "sort_by";
 
     private MoviesArrayAdapter mArrayAdapter;
     private ArrayList<Movie> mMovies;
@@ -85,6 +90,15 @@ public class MoviesGridFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_movies_fragment, menu);
+
+        SharedPreferences settings = getActivity().getPreferences(Context.MODE_PRIVATE);
+        String sortBy = settings.getString(SORT_BY, POPULARITY_DESC);
+
+        if (sortBy.equals(POPULARITY_DESC)) {
+            menu.findItem(R.id.action_most_popular).setChecked(true);
+        } else if (sortBy.equals(VOTE_AVERAGE_DESC)) {
+            menu.findItem(R.id.action_highest_rating).setChecked(true);
+        }
     }
 
     @Override
@@ -93,9 +107,26 @@ public class MoviesGridFragment extends Fragment {
         if (id == R.id.action_refresh) {
             updateMovies();
             return true;
+        } else if (id == R.id.action_most_popular) {
+            if (!item.isChecked()) item.setChecked(true);
+            saveSortSetting(POPULARITY_DESC);
+            updateMovies();
+            return true;
+        } else if (id == R.id.action_highest_rating) {
+            if (!item.isChecked()) item.setChecked(true);
+            saveSortSetting(VOTE_AVERAGE_DESC);
+            updateMovies();
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void saveSortSetting(String value) {
+        SharedPreferences settings = getActivity().getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putString(SORT_BY, value);
+        editor.commit();
     }
 
     private void updateMovies() {
@@ -123,11 +154,12 @@ public class MoviesGridFragment extends Fragment {
 
             final String MOVIES_BASE_URL =
                     "http://api.themoviedb.org/3/discover/movie?";
-            final String SORT_PARAM = "sort_by";
+            final String SORT_PARAM = SORT_BY;
             final String KEY_PARAM ="api_key";
 
             String apiKey = ApiKey.API_SSH_KEY;
-            String sortBy = "popularity.desc";
+            SharedPreferences settings = getActivity().getPreferences(Context.MODE_PRIVATE);
+            String sortBy = settings.getString(SORT_BY, POPULARITY_DESC);
 
             try {
                 Uri builtUri = Uri.parse(MOVIES_BASE_URL).buildUpon()
@@ -189,7 +221,7 @@ public class MoviesGridFragment extends Fragment {
             SimpleDateFormat dateFormat = new SimpleDateFormat(Movie.DATE_FORMAT);
 
             if (moviesArray == null || moviesArray.length() <= 0) return null;
-            Movie[] results = new Movie[moviesArray.length()];
+            ArrayList<Movie> results = new ArrayList<>();
 
             for (int i = 0; i < moviesArray.length(); i++) {
                 JSONObject movieJson = moviesArray.getJSONObject(i);
@@ -202,17 +234,21 @@ public class MoviesGridFragment extends Fragment {
                     return null;
                 }
 
+                //Avoid movies without a poster
+                String poster_path = movieJson.getString("poster_path");
+                if (poster_path.equals("null")) continue;
+
                 Movie movie = new Movie(movieJson.getLong("id"));
                 movie.setName(movieJson.getString("original_title"));
                 movie.setOverview(movieJson.getString("overview"));
-                movie.setThumbnailFileName(movieJson.getString("poster_path"));
+                movie.setThumbnailFileName(poster_path);
                 movie.setUserRating(movieJson.getDouble("vote_average"));
                 movie.setReleaseDate(releaseDate);
 
-                results[i] = movie;
+                results.add(movie);
             }
 
-            return results;
+            return results.toArray(new Movie[results.size()]);
         }
     }
 }

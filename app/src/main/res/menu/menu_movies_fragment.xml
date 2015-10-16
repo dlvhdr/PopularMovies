@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <group android:checkableBehavior="single">
+        <item android:id="@+id/action_most_popular"
+            android:title="@string/action_most_popular"
+            app:showAsAction="never" />
+
+        <item android:id="@+id/action_highest_rating"
+            android:title="@string/action_highest_rating"
+            app:showAsAction="never" />
+    </group>
+
     <item android:id="@+id/action_refresh"
         android:title="@string/action_refresh"
-        app:showAsAction="never"
-        />
+        app:showAsAction="never" />
 </menu>
